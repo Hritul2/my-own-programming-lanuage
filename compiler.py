@@ -1,11 +1,12 @@
 import re
 
-code= '''\
+code = '''\
 ye x = 10
 ye y = 20
 ye sum = x + y
 bol sum
 '''
+
 
 
 def lexer(input):
@@ -39,8 +40,6 @@ def lexer(input):
             continue
     return tokens
 
-
-
 def parser(tokens):
     ast = {
         'type': 'Program',
@@ -56,7 +55,6 @@ def parser(tokens):
                 'name': tokens.pop(0)['value'],  # Access 'value' directly
                 'value': None
             }
-            # Check for assignment
             if tokens[0]['type'] == 'operator' and tokens[0]['value'] == '=':
                 tokens.pop(0)  # Remove '=' token
                 expression = ''
@@ -70,13 +68,22 @@ def parser(tokens):
         
     return ast
 
+def codeGen(node):
+    if node['type']== 'Program':
+        return '\n'.join(map(codeGen, node['body']))
+    if node['type']=='Declaration':
+        if node['value'] is None:
+            raise ValueError(f"Variable '{node['name']}' is not assigned a value")
+        return f"{node['name']}={node['value']}"
+    if node['type']=='Print':
+        return f"print({node['expression']})"
 
 def compiler(input):
-    tokens= lexer(input)
-    ast=parser(tokens)
-    executableCode=codeGen(ast)
-    for i in ast['body']:
-        print(i)
+        tokens = lexer(input)
+        ast = parser(tokens)
+        executableCode = codeGen(ast)
+        return executableCode
+
 
 
 
