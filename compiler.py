@@ -1,9 +1,9 @@
 import re
 
 code = '''\
-ye x = 10
-ye y = 20
-ye sum = x + y
+ye x = 2
+ye y = 2
+ye sum = x ** y
 bol sum
 '''
 
@@ -85,7 +85,9 @@ def compiler(input):
         return executableCode
 
 
-
+def runner(input):
+    exec(input)
 
 if __name__ == "__main__":
-    compiler(code)
+    execu=compiler(code)
+    runner(execu)
