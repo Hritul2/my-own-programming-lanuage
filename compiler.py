@@ -9,40 +9,31 @@ bol sum
 
 
 def lexer(input):
-    tokens=[]
-    cursor=0
-    while cursor< len(input):
-        char=input[cursor]
-        # skip if white space
-        if re.match(r'\s', char):
-            cursor+=1
+    tokens = []
+    cursor = 0
+    while cursor < len(input):
+        char = input[cursor]
+        if char.isspace():
+            cursor += 1
             continue
-        # fill word for characters
-        if re.search(r'[a-zA-Z]', char):
-            word=''
-            while cursor < len(input) and re.search(r'[a-zA-Z]', char):
-                word+=char
-                cursor+=1
-                if cursor < len(input):
-                    char = input[cursor]
-            
+        if char.isalpha():
+            word = ''
+            while cursor < len(input) and input[cursor].isalnum():
+                word += input[cursor]
+                cursor += 1
             if word in ('ye', 'bol'):
-                tokens.append({"type":'keyword',"value":word})
+                tokens.append({"type": 'keyword', "value": word})
             else:
-                tokens.append({'type':'identifier','value':word})
-            
+                tokens.append({'type': 'identifier', 'value': word})
             continue
-        # Fill num for numerals
-        if re.search(r'[0-9]', char):
-            num=''
-            while cursor < len(input) and re.search(r'[0-9]', char):
-                num+=char
-                cursor+=1
-                char=input[cursor]
-            tokens.append({'type':'number', 'value':int(num)})
+        if char.isdigit():
+            num = ''
+            while cursor < len(input) and input[cursor].isdigit():
+                num += input[cursor]
+                cursor += 1
+            tokens.append({'type': 'number', 'value': int(num)})
             continue
-        # For operators and assignment operator
-        if re.search(r'[\+\-\*\/=]', char):
+        if char in ('+', '-', '*', '/', '='):
             tokens.append({'type': 'operator', 'value': char})
             cursor += 1
             continue
@@ -50,13 +41,44 @@ def lexer(input):
 
 
 
+def parser(tokens):
+    ast = {
+        'type': 'Program',
+        "body": []
+    }
+    
+    while len(tokens) > 0:
+        token = tokens.pop(0)
+
+        if token["type"] == 'keyword' and token['value'] == 'ye':
+            declaration = {
+                'type': 'Declaration',
+                'name': tokens.pop(0)['value'],  # Access 'value' directly
+                'value': None
+            }
+            # Check for assignment
+            if tokens[0]['type'] == 'operator' and tokens[0]['value'] == '=':
+                tokens.pop(0)  # Remove '=' token
+                expression = ''
+                # Build expression until next keyword
+                while len(tokens) > 0 and tokens[0]['type'] != 'keyword':
+                    expression += str(tokens.pop(0)['value'])  # Access 'value' directly
+                declaration['value'] = expression.strip()  # Use strip() instead of trim()
+            ast['body'].append(declaration)
+        if token['type']=='keyword' and token['value']=='bol':
+            ast['body'].append({'type':'Print',"expression": tokens.pop(0)['value']})
+        
+    return ast
+
 
 def compiler(input):
-    tokens= lenxer(input)
+    tokens= lexer(input)
+    ast=parser(tokens)
+    executableCode=codeGen(ast)
+    for i in ast['body']:
+        print(i)
 
 
 
 if __name__ == "__main__":
-    tokens = lexer(code)
-    for token in tokens:
-        print(token)
+    compiler(code)
